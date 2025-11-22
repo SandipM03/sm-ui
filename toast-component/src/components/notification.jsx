@@ -1,14 +1,14 @@
 import { AiOutlineClose,AiOutlineCheck, AiOutlineCloseCircle, AiOutlineInfoCircle, AiOutlineWarning } from "react-icons/ai";
 import './notification.css'
-
+const iconStyle={color:"white", size:24}
 const icons={
-    success: <AiOutlineCheck />,
-    info: <AiOutlineInfoCircle />,
-    warning: <AiOutlineWarning />,
-    error: <AiOutlineCloseCircle />
+    success: <AiOutlineCheck {...iconStyle} />,
+    info: <AiOutlineInfoCircle {...iconStyle} />,
+    warning: <AiOutlineWarning {...iconStyle} />,
+    error: <AiOutlineCloseCircle {...iconStyle} />
 }
 
-const notification = ({type="info",message,onClose}) => {
+const notification = ({type="info",message,onClose=()=>{}}) => {
   return (
     <div className={`notification ${type}`}>
         {/* icon */}
@@ -16,7 +16,7 @@ const notification = ({type="info",message,onClose}) => {
         {/* message */}
         {message || "This is a notification"}
         {/* close button */}
-        <AiOutlineClose color="white"/>
+        <AiOutlineClose color="white" className="closeBtn" onClick={()=>onClose}/>
     </div>
   )
 }
