@@ -1,0 +1,21 @@
+.notification {
+    padding: 15px;
+    border-radius: 5px;
+    margin: 10px ;
+    color: white;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+.success {
+    background-color: #4CAF50;
+}
+.info {
+    background-color: #2196F3;
+}
+.warning {
+    background-color: #ff9800;
+}
+.error {
+    background-color: #f44336;
+}
