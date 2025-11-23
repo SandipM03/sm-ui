@@ -49,7 +49,9 @@ const Autocomplete = ({
         }
     };
     const getSuggestionsDebounced = useCallback(
-        debounce(getSuggestions, 300),[]);
+        debounce((query) => getSuggestions(query), 300),
+        [stacticData, fetchSuggestions]
+    );
 
   useEffect(() => {
     if (inputValue.length>1) {
@@ -57,7 +59,7 @@ const Autocomplete = ({
     }else{
         setSuggestions([]);
     }
-  },[inputValue]);
+  },[inputValue, getSuggestionsDebounced]);
   const handelSuggestionsClick = (suggestion) => {
  setInputValue(dataKey ? suggestion[dataKey] : suggestion);
     onSelect(suggestion);

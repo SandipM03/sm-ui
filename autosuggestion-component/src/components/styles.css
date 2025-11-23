@@ -17,7 +17,6 @@
 .error {
   padding: 10px;
   font-size: 14px;
-  color: #555;
 }
 
 .error {
@@ -49,4 +48,5 @@
 .suggestion-item.selected,
 .suggestion-item[aria-selected="true"] {
   background-color: #f0f0f0;
+  color: #0918e8;
 }
