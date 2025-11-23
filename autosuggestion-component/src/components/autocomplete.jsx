@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import "./styles.css"
 import SuggestionsList from './suggestions-list';
 import debounce from 'lodash/debounce';
+import useCache from '../hooks/use-cache';
 const Autocomplete = ({
         stacticData,
         fetchSuggestions,
@@ -20,14 +21,24 @@ const Autocomplete = ({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [selectedIndex, setSelectedIndex] = useState(-1);
+    const { getCachedValue, addToCache } = useCache();
     console.log(suggestions);
+    console.log('api call');
     
     const handleInputChange = async (e) => {
         setInputValue(e.target.value);
         onChange(e.target.value);
         setSelectedIndex(-1);
     };
-    const getSuggestions = async (query) => {
+    const getSuggestions = useCallback(async (query) => {
+        // Check cache first
+        const cachedResult = getCachedValue(query);
+        if (cachedResult !== null) {
+            setSuggestions(cachedResult);
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         setError(null);
         try {
@@ -40,6 +51,8 @@ const Autocomplete = ({
                 result = await fetchSuggestions(query);
             }
             setSuggestions(result);
+            // Store in cache
+            addToCache(query, result);
         } catch (err) {
             console.error(err);
             setError("Failed to fetch suggestions");
@@ -47,19 +60,22 @@ const Autocomplete = ({
         }finally{
             setLoading(false);
         }
-    };
-    const getSuggestionsDebounced = useCallback(
-        debounce((query) => getSuggestions(query), 300),
-        [stacticData, fetchSuggestions]
-    );
+    }, [stacticData, fetchSuggestions, getCachedValue, addToCache]);
 
   useEffect(() => {
     if (inputValue.length>1) {
-       getSuggestionsDebounced(inputValue);
+       const debouncedFetch = debounce((query) => {
+            getSuggestions(query);
+        }, 300);
+       debouncedFetch(inputValue);
+       
+       return () => {
+           debouncedFetch.cancel();
+       };
     }else{
         setSuggestions([]);
     }
-  },[inputValue, getSuggestionsDebounced]);
+  },[inputValue, getSuggestions]);
   const handelSuggestionsClick = (suggestion) => {
  setInputValue(dataKey ? suggestion[dataKey] : suggestion);
     onSelect(suggestion);
