@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import "./styles.css"
+import SuggestionsList from './suggestions-list';
+import debounce from 'lodash/debounce';
 const Autocomplete = ({
         stacticData,
         fetchSuggestions,
@@ -17,11 +19,13 @@ const Autocomplete = ({
     const [suggestions, setSuggestions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [selectedIndex, setSelectedIndex] = useState(-1);
     console.log(suggestions);
     
     const handleInputChange = async (e) => {
         setInputValue(e.target.value);
         onChange(e.target.value);
+        setSelectedIndex(-1);
     };
     const getSuggestions = async (query) => {
         setLoading(true);
@@ -42,14 +46,52 @@ const Autocomplete = ({
         }finally{
             setLoading(false);
         }
-  };
+    };
+    const getSuggestionsDebounced = useCallback(
+        debounce(getSuggestions, 300),[]);
+
   useEffect(() => {
     if (inputValue.length>1) {
-        getSuggestions(inputValue);
+       getSuggestionsDebounced(inputValue);
     }else{
         setSuggestions([]);
     }
-  },[inputValue])
+  },[inputValue]);
+  const handelSuggestionsClick = (suggestion) => {
+ setInputValue(dataKey ? suggestion[dataKey] : suggestion);
+    onSelect(suggestion);
+    setSuggestions([]);
+    setSelectedIndex(-1);
+  }
+
+  const handleKeyDown = (e) => {
+    if (suggestions.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex((prev) => 
+          prev < suggestions.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+          handelSuggestionsClick(suggestions[selectedIndex]);
+        }
+        break;
+      case 'Escape':
+        setSuggestions([]);
+        setSelectedIndex(-1);
+        break;
+      default:
+        break;
+    }
+  }
 
   return (
     <div className='Container'>
@@ -61,9 +103,24 @@ const Autocomplete = ({
         onBlur={onBlur}
         onFocus={onFocus}
         onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
         />
-        {error && <div className='Error'>{error}</div>}
-        {loading && <div className='Loading'>{cutomloading}</div>}
+       
+    {(suggestions.length >0|| loading|| error) && (
+        <ul className="suggestions-list">
+            {error && <div className='Error'>{error}</div>}
+            {loading && <div className='Loading'>{cutomloading}</div>}
+            <SuggestionsList 
+            dataKey={dataKey}
+            highlight={inputValue}
+            suggestions={suggestions}
+            onSuggestionClick={handelSuggestionsClick}
+            selectedIndex={selectedIndex}
+            />
+
+        </ul>
+    )}
+       
     </div>
   )
 }
