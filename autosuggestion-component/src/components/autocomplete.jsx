@@ -41,6 +41,7 @@ const Autocomplete = ({
             }
             setSuggestions(result);
         } catch (err) {
+            console.error(err);
             setError("Failed to fetch suggestions");
             setSuggestions([])
         }finally{

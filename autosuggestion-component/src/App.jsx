@@ -40,7 +40,6 @@ function App() {
     onBlur={(e)=>{}}
     onFocus={(e)=>{}}
     customStyles={{}}
-    
     />
     </>
   )
