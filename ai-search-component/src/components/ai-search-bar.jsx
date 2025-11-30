@@ -4,7 +4,7 @@ import useCache from '../hooks/use-cache';
 import { validateTopicRelevance, searchDocumentation, validateAIQuery, buildAIPrompt } from '../utils/search-utils';
 import SuggestionsList from './suggestions-list';
 import './ai-search.css';
-import { GoogleGenAI } from "@google/genai"
+
 const AISearchBar = ({ config }) => {
   const [inputValue, setInputValue] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -16,7 +16,6 @@ const AISearchBar = ({ config }) => {
   const [aiResponse, setAiResponse] = useState(null);
   
   const { getCachedValue, addToCache } = useCache();
-  const ai = new GoogleGenAI({});
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
     setSelectedIndex(-1);
@@ -252,45 +251,54 @@ const AISearchBar = ({ config }) => {
   );
 };
 
-const prompt= `You are a helpful and concise documentation assistant for a product focused on ${TOPIC}. Your primary goal is to answer questions related to this topic.
-  1. If the user's question is directly related to ${TOPIC}, provide a clear and brief answer.
-  2. If the user's question is COMPLETELY unrelated to ${TOPIC} (e.g., questions about cooking, history, or other product categories), you MUST politely decline and state, "I can only answer questions related to ${TOPIC} documentation. Please refine your query." Do not attempt to use search results for off-topic questions.
-  3. Be brief, do not use Markdown headings or lists in your answer.`;
-// Mock AI API call - Replace with your actual AI implementation
+// Gemini AI API call implementation
+// eslint-disable-next-line no-unused-vars
 const callAIAPI = async (prompt, config) => {
-  // Mock response for demonstration
-  return new Promise(() => {
-    setTimeout(async () => {
-        const response = await ai.generateText({
-            model: "gemini-2.5-flash",
-            prompt: prompt.userPrompt,
+  const GEMINI_API_KEY = import.meta.env.VITE_GEMNI_API_KEY;
+  
+  if (!GEMINI_API_KEY) {
+    throw new Error('Gemini API key not found. Please add VITE_GEMNI_API_KEY to your .env file');
+  }
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `${prompt.systemPrompt}\n\nUser Question: ${prompt.userPrompt}`
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.7,
             maxOutputTokens: 500,
-           
+          }
         })
-//       resolve(`This is a mock AI response about "${prompt.userPrompt.split('"')[1]}". 
+      }
+    );
 
-// To enable real AI responses:
-// 1. Get an API key from ${config.aiProvider}
-// 2. Implement the callAIAPI function with your provider's API
-// 3. For OpenAI, Anthropic, or custom AI endpoints
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || 'Gemini API request failed');
+    }
 
-// Example for OpenAI:
-// const response = await fetch('https://api.openai.com/v1/chat/completions', {
-//   method: 'POST',
-//   headers: {
-//     'Authorization': 'Bearer YOUR_API_KEY',
-//     'Content-Type': 'application/json'
-//   },
-//   body: JSON.stringify({
-//     model: '${config.aiModel}',
-//     messages: [
-//       { role: 'system', content: prompt.systemPrompt },
-//       { role: 'user', content: prompt.userPrompt }
-//     ]
-//   })
-// });`);
-    }, 1500);
-  });
+    const data = await response.json();
+    const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    
+    if (!aiText) {
+      throw new Error('No response from Gemini AI');
+    }
+
+    return aiText;
+  } catch (error) {
+    console.error('Gemini AI Error:', error);
+    throw error;
+  }
 };
 
 export default AISearchBar;
