@@ -1,5 +1,6 @@
 
 import './App.css'
+import Pages from './components/pages';
 import useNotification  from "./hooks/use-notification"
 
 function App() {
@@ -17,6 +18,7 @@ const { NotificationComponent, triggerNotification } = useNotification("top-righ
     error</button>
    {NotificationComponent}
    <p>tool component </p>
+   <Pages/>
    </>
   )
 }
