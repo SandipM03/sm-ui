@@ -1,10 +1,21 @@
 "use client";
 
-import React from 'react';
-
+import React,{useState} from 'react';
+import { useAptabase } from '@aptabase/react';
 const SoilHeader: React.FC = () => {
   const navItems = ['WORKS', 'JOURNAL', 'NEWS', 'ABOUT', 'CONTACT'];
+  const { trackEvent } = useAptabase();
+  const [count, setCount] = useState(0);
 
+  function increment() {
+    setCount((c) => c + 1);
+    trackEvent('increment', { count });
+  }
+
+  function decrement() {
+    setCount((c) => c - 1);
+    trackEvent('decrement', { count });
+  }
   return (
     <header className="w-full px-4 pt-4 pb-0 flex flex-col items-center bg-white text-black">
       {/* Top Navigation Bar */}
@@ -30,6 +41,12 @@ const SoilHeader: React.FC = () => {
         <span className="font-serif text-[18vw] leading-[0.8]">O</span>
         <span className="font-serif text-[18vw] leading-[0.8]">I</span>
         <span className="font-serif text-[18vw] leading-[0.8]">L</span>
+      </div>
+      <div className='m-14'>
+        <p>Count: {count}</p>
+      <button onClick={increment}>Increment</button>
+      <button onClick={decrement}>Decrement</button>
+
       </div>
     </header>
   );

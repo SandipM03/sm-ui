@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Pause, Play, ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 
-// --- Types & Data ---
 
 interface SlideData {
   id: number;
