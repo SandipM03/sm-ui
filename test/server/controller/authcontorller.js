@@ -46,9 +46,18 @@ const login= async(req, res)=>{
         if(!isMatch){
             return res.status(400).json({message: 'Invalid email or password'});    
         }
+        const token= jwt.sign({userId: user._id}, process.env.JWT_SECRET, {expiresIn: '1h'});
+        if(!token){
+
+            return res.status(500).json({message: 'Error generating token'});
+        }
+        res.status(200).json({token});
+
+        navigate('/dashboard');
     } catch (error) {
-        
+        res.status(500).json({message: 'Error logging in'});
+        navigate('/login');
     }
 }
-
+const 
 module.exports= {signUp, login};
